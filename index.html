@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>薬価・出荷状況しらべ</title>
+<meta name="description" content="医療用医薬品の薬価と出荷状況(限定出荷・供給停止・販売中止)を、広告なしで一度に調べられる薬局向けの検索ページ。">
+<style>
+:root{
+  --bg:#f4f6f8;--card:#ffffff;--ink:#17202b;--sub:#5d6876;--line:#dfe4ea;
+  --acc:#1d5fa8;--acc-soft:#e8f0fa;
+  --ok:#1f7a3d;--ok-soft:#e6f4ea;--warn:#a35a00;--warn-soft:#fff1dc;
+  --stop:#b3261e;--stop-soft:#fde8e6;--gray-soft:#eceff3;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12161b;--card:#1b2128;--ink:#e6eaef;--sub:#9aa6b4;--line:#2c343e;
+  --acc:#6aa8ef;--acc-soft:#1c2b3d;
+  --ok:#62c482;--ok-soft:#173022;--warn:#f0a947;--warn-soft:#352711;
+  --stop:#ff8a80;--stop-soft:#3a1c1a;--gray-soft:#262d36;
+}}
+:root[data-theme="dark"]{
+  --bg:#12161b;--card:#1b2128;--ink:#e6eaef;--sub:#9aa6b4;--line:#2c343e;
+  --acc:#6aa8ef;--acc-soft:#1c2b3d;
+  --ok:#62c482;--ok-soft:#173022;--warn:#f0a947;--warn-soft:#352711;
+  --stop:#ff8a80;--stop-soft:#3a1c1a;--gray-soft:#262d36;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Hiragino Sans","Noto Sans JP","Yu Gothic UI",sans-serif;font-size:15px;line-height:1.55}
+header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.wrap{max-width:860px;margin:0 auto;padding:0 16px}
+.top{display:flex;align-items:baseline;gap:10px;padding-top:10px}
+h1{font-size:18px;margin:0;letter-spacing:.02em}
+.top .muted{font-size:12px}
+.searchbox{padding:8px 0 10px}
+input[type=search]{width:100%;font-size:16px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+input[type=search]:focus{outline:2px solid var(--acc);outline-offset:0}
+.filters{display:flex;flex-wrap:wrap;gap:6px;padding-bottom:10px}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--sub);border-radius:999px;padding:4px 11px;font-size:13px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--acc-soft);border-color:var(--acc);color:var(--acc);font-weight:600}
+main{padding:10px 0 40px}
+.count{color:var(--sub);font-size:13px;margin:4px 0 8px}
+.item{display:block;width:100%;text-align:left;font:inherit;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:0 0 8px;cursor:pointer}
+.item:hover{border-color:var(--acc)}
+.item .row1{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.item .nm{font-weight:600}
+.item .pr{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
+.item .row2{font-size:12.5px;color:var(--sub);margin-top:2px}
+.tags{margin-top:5px;display:flex;flex-wrap:wrap;gap:4px}
+.tag{font-size:11.5px;padding:1px 7px;border-radius:6px;background:var(--gray-soft);color:var(--sub);white-space:nowrap}
+.tag.ok{background:var(--ok-soft);color:var(--ok)}
+.tag.lim{background:var(--warn-soft);color:var(--warn);font-weight:600}
+.tag.stop{background:var(--stop-soft);color:var(--stop);font-weight:600}
+.tag.disc{background:var(--stop-soft);color:var(--stop)}
+.empty{color:var(--sub);text-align:center;padding:40px 0}
+.intro{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:14px}
+.intro ul{margin:6px 0 0;padding-left:20px}
+footer{color:var(--sub);font-size:12px;border-top:1px solid var(--line);padding:14px 0 30px}
+footer a{color:var(--acc)}
+/* 詳細 */
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:10;align-items:flex-end;justify-content:center}
+.sheet.on{display:flex}
+.panel{background:var(--card);width:100%;max-width:860px;max-height:90vh;overflow:auto;border-radius:16px 16px 0 0;padding:16px}
+@media (min-width:700px){.sheet{align-items:center}.panel{border-radius:16px;max-height:86vh}}
+.panel h2{font-size:17px;margin:0 0 4px}
+.close{float:right;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:5px 12px;cursor:pointer;font-size:14px}
+dl{display:grid;grid-template-columns:7.5em 1fr;gap:4px 10px;margin:10px 0;font-size:14px}
+dt{color:var(--sub)}dd{margin:0}
+.calc{background:var(--acc-soft);border-radius:10px;padding:10px 12px;margin:10px 0;font-size:14px}
+.calc input{width:8em;font-size:16px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
+.pos{color:var(--ok);font-weight:700}.neg{color:var(--stop);font-weight:700}
+h3{font-size:15px;margin:16px 0 6px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--sub);font-weight:500}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.me td{font-weight:700}
+tr.alt{cursor:pointer}tr.alt:hover td{background:var(--acc-soft)}
+.note{font-size:12px;color:var(--sub)}
+.sr{position:absolute;left:-9999px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="top"><h1>薬価・出荷状況しらべ</h1><span class="muted" id="stamp">読み込み中…</span></div>
+    <div class="searchbox">
+      <label class="sr" for="q">検索</label>
+      <input id="q" type="search" placeholder="品名・成分名・メーカー・YJコード(例:アムロジピン 5mg)" autocomplete="off" disabled>
+    </div>
+    <div class="filters" role="group" aria-label="絞り込み">
+      <button class="chip" data-f="trouble" aria-pressed="false">出荷調整中だけ</button>
+      <button class="chip" data-f="nodisc" aria-pressed="false">販売中止を除く</button>
+      <button class="chip" data-f="ge" aria-pressed="false">後発品</button>
+      <button class="chip" data-f="sen" aria-pressed="false">先発品</button>
+      <button class="chip" data-f="sec:内" aria-pressed="false">内用</button>
+      <button class="chip" data-f="sec:外" aria-pressed="false">外用</button>
+      <button class="chip" data-f="sec:注" aria-pressed="false">注射</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="intro" class="intro">
+    <b>薬の値段(薬価)と、いま手に入るか(出荷状況)を一度に調べられます。</b>
+    <ul>
+      <li>品名・成分名・メーカー名・YJコードで探せます。スペースで区切ると、すべてを含む品目に絞ります。</li>
+      <li>品目を押すと、<b>同じ成分・同じ規格の品目</b>が薬価の安い順に、出荷状況つきで並びます。限定出荷や販売中止の代わりを探すときに使えます。</li>
+      <li>購入価を入れると薬価差を計算します。入れた購入価は<b>この端末の中だけ</b>に保存され、外には送られません。</li>
+    </ul>
+  </div>
+  <p class="count" id="count"></p>
+  <div id="list"></div>
+  <footer id="foot"></footer>
+</main>
+
+<div class="sheet" id="sheet" aria-hidden="true"><div class="panel" id="panel" role="dialog" aria-modal="true"></div></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const yen = v => v == null ? "—" : (Math.round(v * 100) / 100).toLocaleString("ja-JP", {maximumFractionDigits: 2}) + "円";
+// ひらがな→カタカナ、全角→半角、大文字→小文字、空白なし
+const norm = s => (s || "").normalize("NFKC").toLowerCase().replace(/[ぁ-ゖ]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x60)).replace(/\s+/g, "");
+
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+};
+let BUY = store.get("yks_buy", {});   // YJコード -> 購入価
+let DATA = null, ROWS = [], GROUP = new Map();
+const F = new Set();
+
+const STATUS = {"01": ["通常出荷", "ok"], "02": ["限定出荷(自社の事情)", "lim"], "03": ["限定出荷(他社品の影響)", "lim"],
+                "04": ["限定出荷(その他)", "lim"], "05": ["供給停止", "stop"]};
+
+function tagsHtml(r) {
+  const t = [];
+  const st = STATUS[r.status];
+  if (st) t.push(`<span class="tag ${st[1]}">${st[0]}</span>`);
+  else t.push(`<span class="tag">出荷状況の掲載なし</span>`);
+  if (r.disc) t.push(`<span class="tag disc">販売中止(薬価削除予定)</span>`);
+  if (r.keika) t.push(`<span class="tag disc">経過措置 ${esc(r.keika)}まで</span>`);
+  if (r.volume && r.status !== "01" && r.volume !== "D.薬価削除予定") t.push(`<span class="tag">${esc(r.volume.replace(/^[A-Zプラス]+\./, ""))}</span>`);
+  if (r.kind) t.push(`<span class="tag">${esc(r.kind)}</span>`);
+  return t.join("");
+}
+
+function itemHtml(r, i) {
+  const b = BUY[r.yj];
+  const diff = b > 0 && r.price != null ? ` ・ 薬価差 <span class="${r.price - b >= 0 ? "pos" : "neg"}">${yen(r.price - b)}</span>` : "";
+  return `<button class="item" data-i="${i}">
+    <div class="row1"><span class="nm">${esc(r.name)}</span><span class="pr">${yen(r.price)}</span></div>
+    <div class="row2">${esc(r.ing)} / ${esc(r.spec)} / ${esc(r.maker)}${diff}</div>
+    <div class="tags">${tagsHtml(r)}</div></button>`;
+}
+
+function pass(r) {
+  if (F.has("trouble") && !(r.status && r.status !== "01")) return false;
+  if (F.has("nodisc") && (r.disc || r.keika)) return false;
+  if (F.has("ge") && r.kind !== "後発") return false;
+  if (F.has("sen") && !r.kind.startsWith("先発")) return false;
+  const secs = [...F].filter(f => f.startsWith("sec:")).map(f => f.slice(4));
+  if (secs.length && !secs.includes(r.sec)) return false;
+  return true;
+}
+
+function search() {
+  const raw = ($("#q").value || "").split(/[\s、,]+/).map(norm).filter(Boolean);
+  // 数字で始まる語(5mg など)は、前に数字や小数点が来る所(2.5mg)には当てない
+  const terms = raw.map(t => /^[0-9]/.test(t)
+    ? (k => new RegExp("(^|[^0-9.])" + t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).test(k))
+    : (k => k.includes(t)));
+  const active = terms.length || F.size;
+  $("#intro").style.display = active ? "none" : "";
+  if (!active) { $("#list").innerHTML = ""; $("#count").textContent = `全${ROWS.length.toLocaleString()}品目。検索するか、絞り込みを選んでください。`; return; }
+  const hit = [];
+  for (let i = 0; i < ROWS.length; i++) {
+    const r = ROWS[i];
+    if (terms.every(t => t(r._k)) && pass(r)) hit.push(i);
+  }
+  const shown = hit.slice(0, 150);
+  $("#count").textContent = `${hit.length.toLocaleString()}品目${hit.length > shown.length ? `(先頭${shown.length}件を表示。語を足して絞り込めます)` : ""}`;
+  $("#list").innerHTML = shown.length ? shown.map(i => itemHtml(ROWS[i], i)).join("") : `<div class="empty">見つかりませんでした。成分名やカタカナでも試してください。</div>`;
+}
+
+function openDetail(i) {
+  const r = ROWS[i];
+  const same = (GROUP.get(r.yj.slice(0, 9)) || []).map(j => ROWS[j])
+    .sort((a, b) => (a.price ?? 1e12) - (b.price ?? 1e12) || (a.status === "01" ? 0 : 1) - (b.status === "01" ? 0 : 1));
+  const st = STATUS[r.status];
+  const b = BUY[r.yj] || "";
+  $("#panel").innerHTML = `
+    <button class="close" id="cls">閉じる</button>
+    <h2>${esc(r.name)}</h2>
+    <div class="tags">${tagsHtml(r)}</div>
+    <dl>
+      <dt>薬価</dt><dd><b>${yen(r.price)}</b> / ${esc(r.spec)}${r.unified ? `<br><span class="note">同じ成分・規格の後発品が同じ薬価でまとめて収載されている品目(統一名収載)です</span>` : ""}</dd>
+      <dt>成分名</dt><dd>${esc(r.ing)}</dd>
+      <dt>メーカー</dt><dd>${esc(r.maker)}</dd>
+      <dt>区分</dt><dd>${esc({内:"内用薬",外:"外用薬",注:"注射薬"}[r.sec] || "—")}${r.kind ? " ・ " + esc(r.kind) : ""}</dd>
+      <dt>出荷状況</dt><dd>${st ? esc(st[0]) : "厚労省の供給状況一覧に掲載なし"}${r.reason ? `<br><span class="note">理由:${esc(r.reason)}</span>` : ""}${r.volume ? `<br><span class="note">出荷量:${esc(r.volume)}</span>` : ""}${r.updated ? `<br><span class="note">情報更新日:${esc(r.updated)}</span>` : ""}</dd>
+      ${r.keika ? `<dt>経過措置</dt><dd>${esc(r.keika)}まで(この日を過ぎると保険請求できません)</dd>` : ""}
+      <dt>YJコード</dt><dd>${esc(r.yj)}</dd>
+    </dl>
+    <div class="calc">
+      <label for="buy">購入価(1${esc(unitOf(r.spec))}あたり)</label>
+      <input id="buy" type="number" inputmode="decimal" step="0.01" min="0" value="${b}"> 円
+      <div id="calcOut" style="margin-top:6px"></div>
+      <div class="note">この端末の中だけに保存されます。</div>
+    </div>
+    <h3>同じ成分・同じ規格の品目(${same.length}品目・薬価の安い順)</h3>
+    <table><thead><tr><th>品名</th><th>出荷状況</th><th class="r">薬価</th></tr></thead><tbody>
+    ${same.map(x => { const s = STATUS[x.status];
+      return `<tr class="${x === r ? "me" : "alt"}" data-i="${ROWS.indexOf(x)}"><td>${esc(x.name)}<br><span class="note">${esc(x.maker)}${x.kind ? " ・ " + esc(x.kind) : ""}</span></td>
+      <td>${s ? `<span class="tag ${s[1]}">${s[0].replace(/\(.*\)/, "")}</span>` : "—"}${x.disc ? ` <span class="tag disc">販売中止</span>` : ""}</td>
+      <td class="r">${yen(x.price)}</td></tr>`; }).join("")}
+    </tbody></table>
+    <p class="note">「同じ成分・同じ規格」はYJコードの先頭9桁が同じ品目です。剤形の細かな違い(OD錠など)や適応の違いは、必ず添付文書で確かめてください。</p>`;
+  const calc = () => {
+    const v = parseFloat($("#buy").value);
+    if (v > 0) { BUY[r.yj] = v; } else { delete BUY[r.yj]; }
+    store.set("yks_buy", BUY);
+    $("#calcOut").innerHTML = v > 0 && r.price != null
+      ? `薬価差 <span class="${r.price - v >= 0 ? "pos" : "neg"}">${yen(r.price - v)}</span>(薬価差率 ${((r.price - v) / r.price * 100).toFixed(1)}%)`
+      : "購入価を入れると、薬価差を計算します。";
+  };
+  $("#buy").addEventListener("input", calc); calc();
+  $("#cls").onclick = closeDetail;
+  $("#sheet").classList.add("on"); $("#sheet").setAttribute("aria-hidden", "false");
+  $("#panel").scrollTop = 0;
+}
+function unitOf(spec) { const m = (spec || "").match(/(錠|カプセル|包|管|瓶|袋|枚|個|本|キット|筒|g|mL|ml|cm|シート|瓶)$/); return m ? m[1] : "単位"; }
+function closeDetail() { $("#sheet").classList.remove("on"); $("#sheet").setAttribute("aria-hidden", "true"); search(); }
+
+document.addEventListener("click", e => {
+  const it = e.target.closest(".item"); if (it) return openDetail(+it.dataset.i);
+  const tr = e.target.closest("tr.alt"); if (tr) return openDetail(+tr.dataset.i);
+  if (e.target.id === "sheet") closeDetail();
+  const c = e.target.closest(".chip");
+  if (c) { const f = c.dataset.f; F.has(f) ? F.delete(f) : F.add(f); c.setAttribute("aria-pressed", F.has(f)); search(); }
+});
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeDetail(); });
+let timer; $("#q").addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(search, 120); });
+
+fetch("data.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(d => {
+  DATA = d;
+  const f = d.fields;
+  ROWS = d.rows.map(a => { const o = {}; f.forEach((k, i) => o[k] = a[i] ?? ""); if (a[5] == null) o.price = null; return o; });
+  ROWS.forEach((r, i) => {
+    r._k = norm(r.name + " " + r.ing + " " + r.maker + " " + r.yj + " " + r.spec);
+    const g = r.yj.slice(0, 9); if (!GROUP.has(g)) GROUP.set(g, []); GROUP.get(g).push(i);
+  });
+  $("#stamp").textContent = `出荷状況 ${d.supply_fetched} / 薬価 ${d.price_files[0].slice(2, 6)}/${d.price_files[0].slice(6, 8)}/${d.price_files[0].slice(8, 10)} 適用分`;
+  $("#foot").innerHTML = `
+    <p><b>出典</b>:厚生労働省「薬価基準収載品目リスト」(<a href="${esc(d.price_page)}" rel="noopener" target="_blank">${esc(d.price_page)}</a>)、
+    厚生労働省「医薬品供給状況一覧」(<a href="https://iyakuhin-kyokyu.mhlw.go.jp/public/supply-status-list" rel="noopener" target="_blank">https://iyakuhin-kyokyu.mhlw.go.jp/public/supply-status-list</a>)を加工して作成。
+    このページは国(厚生労働省)が作成したものではありません。</p>
+    <p>出荷状況は ${esc(d.supply_fetched)} 時点、薬価リストは ${esc(d.price_files.join("・"))} の内容です。最新の状況や採用の判断は、必ず公式の情報・添付文書・卸でご確認ください。医療従事者向けの情報です。患者さんは自己判断で薬をやめず、医師・薬剤師にご相談ください。</p>
+    <p>広告なし・無料。購入価などの入力内容はこの端末のブラウザにだけ保存され、送信されません。</p>`;
+  $("#q").disabled = false; $("#q").focus();
+  search();
+}).catch(err => { $("#stamp").textContent = "データを読み込めませんでした(" + err.message + ")"; });
+</script>
+</body>
+</html>
