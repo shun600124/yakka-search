@@ -188,7 +188,7 @@ function openDetail(i) {
   const same = (GROUP.get(r.yj.slice(0, 9)) || []).map(j => ROWS[j])
     .sort((a, b) => (a.price ?? 1e12) - (b.price ?? 1e12) || (a.status === "01" ? 0 : 1) - (b.status === "01" ? 0 : 1));
   const st = STATUS[r.status];
-  const b = BUY[r.yj] || "";
+  const b = Number(BUY[r.yj]) > 0 ? Number(BUY[r.yj]) : "";
   $("#panel").innerHTML = `
     <button class="close" id="cls">閉じる</button>
     <h2>${esc(r.name)}</h2>
@@ -252,7 +252,7 @@ fetch("data.json").then(r => { if (!r.ok) throw new Error(r.status); return r.js
   });
   $("#stamp").textContent = `出荷状況 ${d.supply_fetched} / 薬価 ${d.price_files[0].slice(2, 6)}/${d.price_files[0].slice(6, 8)}/${d.price_files[0].slice(8, 10)} 適用分`;
   $("#foot").innerHTML = `
-    <p><b>出典</b>:厚生労働省「薬価基準収載品目リスト」(<a href="${esc(d.price_page)}" rel="noopener" target="_blank">${esc(d.price_page)}</a>)、
+    <p><b>出典</b>:厚生労働省「薬価基準収載品目リスト」(<a href="${esc(/^https:\/\/www\.mhlw\.go\.jp\//.test(d.price_page) ? d.price_page : "https://www.mhlw.go.jp/")}" rel="noopener" target="_blank">${esc(d.price_page)}</a>)、
     厚生労働省「医薬品供給状況一覧」(<a href="https://iyakuhin-kyokyu.mhlw.go.jp/public/supply-status-list" rel="noopener" target="_blank">https://iyakuhin-kyokyu.mhlw.go.jp/public/supply-status-list</a>)を加工して作成。
     このページは国(厚生労働省)が作成したものではありません。</p>
     <p>出荷状況は ${esc(d.supply_fetched)} 時点、薬価リストは ${esc(d.price_files.join("・"))} の内容です。最新の状況や採用の判断は、必ず公式の情報・添付文書・卸でご確認ください。医療従事者向けの情報です。患者さんは自己判断で薬をやめず、医師・薬剤師にご相談ください。</p>
