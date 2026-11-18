@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>調剤料金 概算計算（2026年度点数）</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#1d2430;--sub:#5b6575;--line:#e2e6ec;--acc:#0f6e6e;--acc2:#e6f3f3;--warn:#fff4d6;--red:#c0362c}
+@media (prefers-color-scheme:dark){:root{--bg:#14171c;--card:#1e232a;--ink:#e8ebf0;--sub:#9aa4b2;--line:#2e353f;--acc:#4fb3b3;--acc2:#1d3333;--warn:#3a3220;--red:#ff7b70}}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.5}
+main{max-width:760px;margin:0 auto;padding:10px 12px 140px}
+h1{font-size:17px;margin:6px 0 2px}
+h2{font-size:15px;margin:0 0 6px}
+.muted{color:var(--sub);font-size:12.5px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0}
+input,select{font-size:16px;padding:8px 9px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);width:100%}
+.row{display:flex;gap:8px;align-items:center}
+.row>*{flex:1}
+label.ck{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:14px}
+label.ck:last-child{border-bottom:0}
+label.ck input{width:20px;height:20px;flex:none}
+label.ck .pt{margin-left:auto;color:var(--sub);font-size:12.5px;white-space:nowrap}
+.lbl{font-size:12px;color:var(--sub);margin:6px 0 2px}
+.drug{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:8px 0;background:var(--card)}
+.drug .nm{font-weight:600;font-size:14px}
+.drug .x{float:right;border:0;background:none;color:var(--red);font-size:14px;cursor:pointer}
+.badge{display:inline-block;font-size:11px;padding:0 6px;border-radius:10px;background:var(--acc2);color:var(--acc);margin-left:4px}
+.badge.r{background:#fde8e6;color:#c0362c}
+.res{position:relative}
+.sug{position:absolute;left:0;right:0;top:100%;z-index:5;background:var(--card);border:1px solid var(--line);border-radius:8px;max-height:300px;overflow:auto;box-shadow:0 6px 18px rgba(0,0,0,.15)}
+.sug div{padding:8px 10px;border-bottom:1px solid var(--line);cursor:pointer;font-size:14px}
+.sug div small{color:var(--sub)}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:8px 14px calc(8px + env(safe-area-inset-bottom));z-index:9}
+.bar .in{max-width:760px;margin:0 auto}
+.big{font-size:24px;font-weight:700}
+.pays{display:flex;gap:10px;font-size:14px;margin-top:2px}
+.pays b{font-size:17px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td{padding:4px 2px;border-bottom:1px solid var(--line)}
+td.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.sub td{color:var(--sub);font-size:12px}
+details summary{cursor:pointer;font-weight:600;font-size:15px}
+button.s{background:none;color:var(--acc);border:1px solid var(--acc);border-radius:8px;padding:7px 12px;font-size:14px;cursor:pointer}
+.warn{background:var(--warn);border-radius:8px;padding:8px 10px;font-size:12.5px}
+</style>
+</head>
+<body>
+<main>
+<h1>調剤料金 概算計算</h1>
+<p class="muted">2026年6月施行の調剤報酬点数で計算。<span id="built">薬価データを読み込み中…</span></p>
+<p class="muted"><a href="./">← 薬価・出荷状況しらべ(検索)へ</a></p>
+
+<div class="card">
+<h2>① 薬を追加</h2>
+<div class="res">
+<input id="q" type="search" placeholder="薬価データを読み込み中…" autocomplete="off" disabled>
+<div class="sug" id="sug" hidden></div>
+</div>
+<div id="drugs"></div>
+<p class="muted" id="hint">内服薬は、同じ「飲み方」のものが1剤としてまとめて計算されます。</p>
+</div>
+
+<div class="card">
+<h2>② この処方の条件</h2>
+<div class="lbl">服薬管理指導料</div>
+<select id="fukuyaku">
+<option value="45">45点：3か月以内の再来局・手帳あり</option>
+<option value="59">59点：初回・手帳なしなど</option>
+<option value="13">13点：特例</option>
+<option value="0">算定しない</option>
+</select>
+<div class="lbl">時間帯</div>
+<select id="jikan">
+<option value="0">通常</option>
+<option value="night">夜間・休日等加算（開局時間内）＋40点</option>
+<option value="1">時間外加算（基礎額の100%）</option>
+<option value="1.4">休日加算（基礎額の140%）</option>
+<option value="2">深夜加算（基礎額の200%）</option>
+</select>
+<div style="margin-top:6px">
+<label class="ck"><input type="checkbox" id="ippoka">一包化（外来服薬支援料2）<span class="pt">7日分ごと34点</span></label>
+<label class="ck"><input type="checkbox" id="nyuyoji">6歳未満（乳幼児服薬指導加算）<span class="pt">12点</span></label>
+<label class="ck"><input type="checkbox" id="tokutei1">特定薬剤管理指導加算1（新たに処方）<span class="pt">10点</span></label>
+<label class="ck"><input type="checkbox" id="kyunyu">吸入薬指導加算<span class="pt">30点</span></label>
+<label class="ck"><input type="checkbox" id="zanyaku">調剤時残薬調整加算<span class="pt">30点</span></label>
+<label class="ck"><input type="checkbox" id="yugai">薬学的有害事象等防止加算<span class="pt">30点</span></label>
+<label class="ck"><input type="checkbox" id="denshi" checked>今月この患者さんの初回（電子的調剤情報連携体制整備加算）<span class="pt">8点</span></label>
+<label class="ck"><input type="checkbox" id="bukka" checked>3か月以内に算定なし（調剤物価対応料）<span class="pt">1点</span></label>
+</div>
+</div>
+
+<details class="card" id="setDetails">
+<summary>③ 自分の薬局の設定（保存されます）</summary>
+<p class="muted">最初は一般的な設定になっています。自局の届出に合わせて変えると、この端末に保存されます。</p>
+<div class="lbl">調剤基本料</div>
+<select id="kihon" class="save">
+<option value="47">調剤基本料1（47点）</option>
+<option value="30">調剤基本料2（30点）</option>
+<option value="25">調剤基本料3イ（25点）</option>
+<option value="20">調剤基本料3ロ（20点）</option>
+<option value="37">調剤基本料3ハ（37点）</option>
+<option value="5">特別調剤基本料A（5点）</option>
+<option value="3">特別調剤基本料B（3点）</option>
+</select>
+<div class="lbl">地域支援・医薬品供給対応体制加算</div>
+<select id="chiiki" class="save">
+<option value="0">なし</option>
+<option value="27" selected>加算1（27点）</option>
+<option value="59">加算2（59点）</option>
+<option value="67">加算3（67点）</option>
+<option value="37">加算4（37点）</option>
+<option value="59b">加算5（59点）</option>
+</select>
+<div style="margin-top:6px">
+<label class="ck"><input type="checkbox" id="renkei" class="save">連携強化加算<span class="pt">5点</span></label>
+<label class="ck"><input type="checkbox" id="denshiOn" class="save" checked>電子的調剤情報連携体制整備加算の届出あり<span class="pt">8点（月1回）</span></label>
+<label class="ck"><input type="checkbox" id="baseup" class="save" checked>調剤ベースアップ評価料<span class="pt">4点</span></label>
+<label class="ck"><input type="checkbox" id="bukkaOn" class="save" checked>調剤物価対応料<span class="pt">1点（3か月に1回）</span></label>
+<label class="ck"><input type="checkbox" id="kohatsuGen" class="save">後発医薬品減算<span class="pt">−5点</span></label>
+<label class="ck"><input type="checkbox" id="monzen" class="save">門前薬局等立地依存減算<span class="pt">−15点</span></label>
+</div>
+<button class="s" id="resetSet" style="margin-top:8px">一般的な設定に戻す</button>
+</details>
+
+<div class="card">
+<h2>内訳</h2>
+<table id="detail"></table>
+</div>
+
+<div class="warn">
+<b>概算です。</b>実際の請求額はレセコンの計算と異なることがあります（剤のまとめ方、算定回数の制限、公費・高額療養費など）。施設基準・算定要件の判断は自局で行ってください。点数は日本薬剤師会・アイングループ公表の「調剤報酬点数表（令和8年6月1日施行）」をもとにしています。薬価・出荷状況は厚生労働省「薬価基準収載品目リスト」「医薬品供給状況一覧」を加工して作成したもので（毎日更新）、国が作成したものではありません。医療従事者向けの目安です。
+</div>
+<p style="margin-top:10px"><button class="s" id="clearAll">薬をすべて消す</button></p>
+</main>
+
+<div class="bar"><div class="in">
+<div class="row" style="align-items:baseline"><div><span class="muted">合計</span> <span class="big" id="tPt">0点</span> <span class="muted" id="tYen">（0円）</span></div></div>
+<div class="pays"><span>1割 <b id="p1">0円</b></span><span>2割 <b id="p2">0円</b></span><span>3割 <b id="p3">0円</b></span></div>
+</div></div>
+
+<script>
+let DRUGS=[],IDX=[];
+const $=s=>document.querySelector(s);
+// 薬価検索サイトと同じ data.json(毎日更新)を読む。出荷状況・販売中止の印も付ける
+fetch("data.json").then(r=>{if(!r.ok)throw new Error(r.status);return r.json()}).then(d=>{
+ const f=d.fields,ix=k=>f.indexOf(k);
+ const [Y,N,I,S,P,K,C,ST,DI]=["yj","name","ing","spec","price","kind","sec","status","disc"].map(ix);
+ DRUGS=d.rows.filter(a=>a[P]!=null).map(a=>[a[Y],a[N],a[I],a[S],a[P],a[K]||"",a[C],
+   a[DI]?"削除予定":a[ST]==="05"?"停止":["02","03","04"].includes(a[ST])?"限定":""]);
+ IDX=DRUGS.map(x=>norm(x[1]+" "+x[2]));
+ $("#built").textContent="薬価 "+d.price_files[0].slice(2,6)+"/"+d.price_files[0].slice(6,8)+"/"+d.price_files[0].slice(8,10)+" 適用分・出荷状況 "+d.supply_fetched;
+ $("#q").disabled=false;$("#q").placeholder="薬品名・成分名で検索（例：アムロジピン）";
+}).catch(e=>{$("#built").textContent="薬価データを読み込めませんでした（"+e.message+"）"});
+const norm=s=>(s||"").normalize("NFKC").toLowerCase().replace(/[ぁ-ゖ]/g,c=>String.fromCharCode(c.charCodeAt(0)+0x60)).replace(/\s/g,"");
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const YOHO=["朝食後","朝夕食後","毎食後","寝る前","朝昼夕食後・寝る前","朝食前","毎食前","夕食後","食間","その他A","その他B"];
+let LIST=LS.get("cc_list",[]);
+
+// ---------- 検索 ----------
+$("#q").addEventListener("input",()=>{
+ const q=norm($("#q").value);const box=$("#sug");
+ if(q.length<2){box.hidden=true;return}
+ const terms=$("#q").value.split(/[\s,、　]+/).map(norm).filter(Boolean);const res=[];
+ for(let i=0;i<DRUGS.length&&res.length<40;i++){if(terms.every(t=>IDX[i].includes(t)))res.push(i)}
+ box.innerHTML=res.length?res.map(i=>{const d=DRUGS[i];return `<div data-i="${i}">${esc(d[1])}${d[5]?`<span class="badge">${esc(d[5])}</span>`:""}${d[7]?`<span class="badge r">${esc(d[7])}</span>`:""}<br><small>${esc(d[3])}　薬価 ${d[4]}円　${d[6]==="内"?"内用":d[6]==="外"?"外用":"注射"}</small></div>`}).join(""):'<div class="muted">見つかりません</div>';
+ box.hidden=false;
+});
+$("#sug").addEventListener("click",e=>{const el=e.target.closest("[data-i]");if(!el)return;
+ const d=DRUGS[+el.dataset.i];
+ const type=d[6]==="内"?"nai":d[6]==="外"?"gai":"chu";
+ LIST.push({yj:d[0],name:d[1],spec:d[3],price:d[4],type,yoho:"朝食後",qty:1,days:type==="nai"?28:1,flag:""});
+ $("#q").value="";$("#sug").hidden=true;save();render();
+});
+document.addEventListener("click",e=>{if(!e.target.closest(".res"))$("#sug").hidden=true});
+
+// ---------- 薬の行 ----------
+function render(){
+ $("#drugs").innerHTML=LIST.map((x,i)=>{
+  const typeSel=`<select data-k="type" data-i="${i}"><option value="nai"${x.type==="nai"?" selected":""}>内服</option><option value="ton"${x.type==="ton"?" selected":""}>屯服</option><option value="gai"${x.type==="gai"?" selected":""}>外用</option><option value="chu"${x.type==="chu"?" selected":""}>注射</option></select>`;
+  let body="";
+  if(x.type==="nai"){
+   body=`<div class="row"><div><div class="lbl">飲み方</div><select data-k="yoho" data-i="${i}">${YOHO.map(y=>`<option${y===x.yoho?" selected":""}>${y}</option>`).join("")}</select></div></div>
+   <div class="row"><div><div class="lbl">1日量（${unit(x.spec)}）</div><input type="number" inputmode="decimal" step="0.5" data-k="qty" data-i="${i}" value="${x.qty}"></div><div><div class="lbl">日数</div><input type="number" inputmode="numeric" data-k="days" data-i="${i}" value="${x.days}"></div></div>`;
+  }else if(x.type==="ton"){
+   body=`<div class="row"><div><div class="lbl">1回量（${unit(x.spec)}）</div><input type="number" inputmode="decimal" step="0.5" data-k="qty" data-i="${i}" value="${x.qty}"></div><div><div class="lbl">回数</div><input type="number" inputmode="numeric" data-k="days" data-i="${i}" value="${x.days}"></div></div>`;
+  }else{
+   body=`<div class="row"><div><div class="lbl">総量（${unit(x.spec)}）</div><input type="number" inputmode="decimal" step="0.5" data-k="qty" data-i="${i}" value="${x.qty}"></div><div></div></div>`;
+  }
+  return `<div class="drug"><button class="x" data-del="${i}">削除</button><div class="nm">${esc(x.name)}</div><div class="muted">${esc(x.spec)}　薬価 ${x.price}円</div>
+  <div class="row"><div><div class="lbl">区分</div>${typeSel}</div><div><div class="lbl">調製の加算</div><select data-k="flag" data-i="${i}"><option value=""${!x.flag?" selected":""}>なし</option><option value="seishin"${x.flag==="seishin"?" selected":""}>向精神薬・毒薬等（8点）</option><option value="mayaku"${x.flag==="mayaku"?" selected":""}>麻薬（70点）</option></select></div></div>${body}</div>`;
+ }).join("");
+ calc();
+}
+function unit(spec){const m=String(spec).match(/1([^\d\s]+)$/);return m?m[1]:"単位"}
+$("#drugs").addEventListener("change",onEdit);$("#drugs").addEventListener("input",onEdit);
+function onEdit(e){const t=e.target;if(t.dataset.k==null)return;const x=LIST[+t.dataset.i];
+ const k=t.dataset.k;x[k]=(k==="qty"||k==="days")?parseFloat(t.value)||0:t.value;
+ if(k==="type"){if(x.type==="nai"&&x.days<2)x.days=28;if(x.type==="ton"&&x.days>20)x.days=5;save();render();return}
+ save();calc();}
+$("#drugs").addEventListener("click",e=>{const b=e.target.closest("[data-del]");if(!b)return;LIST.splice(+b.dataset.del,1);save();render()});
+$("#clearAll").onclick=()=>{LIST=[];save();render()};
+function save(){LS.set("cc_list",LIST)}
+
+// ---------- 設定 ----------
+const DEF={kihon:"47",chiiki:"27",renkei:false,denshiOn:true,baseup:true,bukkaOn:true,kohatsuGen:false,monzen:false};
+function loadSet(){const s=Object.assign({},DEF,LS.get("cc_set",{}));document.querySelectorAll(".save").forEach(el=>{if(el.type==="checkbox")el.checked=!!s[el.id];else el.value=s[el.id]})}
+function saveSet(){const s={};document.querySelectorAll(".save").forEach(el=>s[el.id]=el.type==="checkbox"?el.checked:el.value);LS.set("cc_set",s)}
+document.querySelectorAll(".save").forEach(el=>el.addEventListener("change",()=>{saveSet();calc()}));
+$("#resetSet").onclick=()=>{LS.set("cc_set",DEF);loadSet();calc()};
+document.querySelectorAll("#fukuyaku,#jikan,#ippoka,#nyuyoji,#tokutei1,#kyunyu,#zanyaku,#yugai,#denshi,#bukka").forEach(el=>el.addEventListener("change",calc));
+
+// ---------- 計算 ----------
+// 薬剤料：所定単位あたり15円以下は1点、15円超は10円またはその端数を増すごとに1点
+const yakuzaiPt=yen=>yen<=0?0:yen<=15?1:1+Math.ceil((yen-15)/10-1e-9);
+function calc(){
+ const rows=[];const add=(n,p,sub)=>{rows.push({n,p,sub})};
+ // 調剤基本料
+ const kihon=+$("#kihon").value;const kihonName=$("#kihon").selectedOptions[0].text;
+ let kihonTotal=kihon;add(kihonName,kihon);
+ const chV=$("#chiiki").value;const ch=chV==="59b"?59:+chV;
+ if(ch){add($("#chiiki").selectedOptions[0].text.replace(/^加算/,"地域支援・医薬品供給対応体制加算"),ch);kihonTotal+=ch}
+ if($("#renkei").checked){add("連携強化加算",5);kihonTotal+=5}
+ if($("#kohatsuGen").checked){add("後発医薬品減算",-5);kihonTotal-=5}
+ if($("#monzen").checked){add("門前薬局等立地依存減算",-15);kihonTotal-=15}
+ if($("#denshiOn").checked&&$("#denshi").checked){add("電子的調剤情報連携体制整備加算",8);kihonTotal+=8}
+
+ // 剤の組み立て
+ const nai=LIST.filter(x=>x.type==="nai"&&x.qty>0&&x.days>0);
+ const zai={};nai.forEach(x=>{(zai[x.yoho]=zai[x.yoho]||[]).push(x)});
+ const zaiKeys=Object.keys(zai);
+ const ton=LIST.filter(x=>x.type==="ton"&&x.qty>0&&x.days>0);
+ const gai=LIST.filter(x=>(x.type==="gai"||x.type==="chu")&&x.qty>0);
+
+ // 薬剤調製料
+ let chosei=0;
+ const naiZai=Math.min(zaiKeys.length,3);
+ if(naiZai){chosei+=24*naiZai;add(`薬剤調製料 内服 ${zaiKeys.length}剤${zaiKeys.length>3?"（3剤まで）":""}`,24*naiZai)}
+ if(ton.length){chosei+=21;add("薬剤調製料 屯服",21)}
+ const gaiN=gai.filter(x=>x.type==="gai").length,chuN=gai.filter(x=>x.type==="chu").length;
+ if(gaiN){const n=Math.min(gaiN,3);chosei+=10*n;add(`薬剤調製料 外用 ${gaiN}調剤${gaiN>3?"（3調剤まで）":""}`,10*n)}
+ if(chuN){chosei+=26;add("薬剤調製料 注射",26)}
+ // 麻薬・向精神薬等加算（1調剤につき）
+ let flagPt=0;LIST.forEach(x=>{if(x.flag==="mayaku")flagPt+=70;else if(x.flag==="seishin")flagPt+=8});
+ if(flagPt){add("麻薬・向精神薬等加算",flagPt)}
+
+ // 調剤管理料（内服は1剤ごと、3剤まで。28日分以上60点、27日分以下10点）
+ let kanri=0;
+ if(zaiKeys.length){
+  const ds=zaiKeys.map(k=>Math.max(...zai[k].map(x=>x.days))).sort((a,b)=>b-a).slice(0,3);
+  ds.forEach(d=>kanri+=d>=28?60:10);
+  add(`調剤管理料（${ds.map(d=>d+"日").join("・")}）`,kanri);
+ }else if(LIST.length){kanri=10;add("調剤管理料（内服薬以外）",10)}
+ if($("#zanyaku").checked){add("調剤時残薬調整加算",30)}
+ if($("#yugai").checked){add("薬学的有害事象等防止加算",30)}
+
+ // 時間外等
+ const jk=$("#jikan").value;
+ if(jk==="night")add("夜間・休日等加算",40);
+ else if(+jk>0){const base=kihonTotal+chosei+kanri;const p=Math.round(base*(+jk));add(`${$("#jikan").selectedOptions[0].text.split("（")[0]}（基礎額${base}点×${+jk*100}%）`,p)}
+
+ // 服薬管理指導料と加算
+ const fk=+$("#fukuyaku").value;
+ if(fk)add("服薬管理指導料",fk);
+ if($("#nyuyoji").checked)add("乳幼児服薬指導加算",12);
+ if($("#tokutei1").checked)add("特定薬剤管理指導加算1",10);
+ if($("#kyunyu").checked)add("吸入薬指導加算",30);
+ if($("#ippoka").checked&&nai.length){
+  const maxD=Math.max(...nai.map(x=>x.days));
+  const p=maxD>=43?240:34*Math.ceil(maxD/7);
+  add(`外来服薬支援料2（一包化 ${maxD}日分）`,p);
+ }
+ if($("#baseup").checked)add("調剤ベースアップ評価料",4);
+ if($("#bukkaOn").checked&&$("#bukka").checked)add("調剤物価対応料",1);
+
+ // 薬剤料
+ let yz=0;
+ // 内服：飲み方＋日数ごとに1日分をまとめる
+ const g={};nai.forEach(x=>{const k=x.yoho+"|"+x.days;(g[k]=g[k]||[]).push(x)});
+ Object.entries(g).forEach(([k,xs])=>{
+  const [y,d]=k.split("|");const yen=xs.reduce((s,x)=>s+x.price*x.qty,0);
+  const p=yakuzaiPt(yen);yz+=p*(+d);
+  add(`薬剤料 内服 ${y}（1日${r2(yen)}円→${p}点×${d}日）`,p*(+d));
+ });
+ // 屯服は「1調剤分」(全回数の合計金額)をまとめて点数化する
+ ton.forEach(x=>{const yen=x.price*x.qty*x.days;const p=yakuzaiPt(yen);yz+=p;add(`薬剤料 屯服 ${x.name}（${x.days}回分 ${r2(yen)}円）`,p)});
+ gai.forEach(x=>{const yen=x.price*x.qty;const p=yakuzaiPt(yen);yz+=p;add(`薬剤料 ${x.type==="chu"?"注射":"外用"} ${x.name}（${r2(yen)}円）`,p)});
+
+ const total=rows.reduce((s,r)=>s+r.p,0);
+ $("#detail").innerHTML=rows.map(r=>`<tr><td>${esc(r.n)}</td><td class="r">${r.p.toLocaleString()}点</td></tr>`).join("")+`<tr><td><b>合計</b></td><td class="r"><b>${total.toLocaleString()}点</b></td></tr>`;
+ $("#tPt").textContent=total.toLocaleString()+"点";
+ $("#tYen").textContent=`（${(total*10).toLocaleString()}円）`;
+ [1,2,3].forEach(w=>$("#p"+w).textContent=futan(total*10,w).toLocaleString()+"円");
+}
+const r2=v=>Math.round(v*100)/100;
+// 一部負担金：10円未満四捨五入
+function futan(yen,w){return Math.round(yen*w/10/10)*10}
+
+loadSet();render();
+</script>
+</body>
+</html>
