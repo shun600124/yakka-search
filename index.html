@@ -147,7 +147,7 @@ function tagsHtml(r) {
   if (st) t.push(`<span class="tag ${st[1]}">${st[0]}</span>`);
   else t.push(`<span class="tag">出荷状況の掲載なし</span>`);
   if (r.disc) t.push(`<span class="tag disc">販売中止(薬価削除予定)</span>`);
-  if (r.keika) t.push(`<span class="tag disc">経過措置 ${esc(r.keika)}まで</span>`);
+  if (r.keika) t.push(`<span class="tag disc">経過措置 ${esc(String(r.keika).replace(/まで$/, ""))}まで</span>`);
   if (r.volume && r.status !== "01" && r.volume !== "D.薬価削除予定") t.push(`<span class="tag">${esc(r.volume.replace(/^[A-Zプラス]+\./, ""))}</span>`);
   if (r.kind) t.push(`<span class="tag">${esc(r.kind)}</span>`);
   return t.join("");
@@ -207,7 +207,7 @@ function openDetail(i) {
       <dt>メーカー</dt><dd>${esc(r.maker)}</dd>
       <dt>区分</dt><dd>${esc({内:"内用薬",外:"外用薬",注:"注射薬"}[r.sec] || "—")}${r.kind ? " ・ " + esc(r.kind) : ""}</dd>
       <dt>出荷状況</dt><dd>${st ? esc(st[0]) : "厚労省の供給状況一覧に掲載なし"}${r.reason ? `<br><span class="note">理由:${esc(r.reason)}</span>` : ""}${r.volume ? `<br><span class="note">出荷量:${esc(r.volume)}</span>` : ""}${r.updated ? `<br><span class="note">情報更新日:${esc(r.updated)}</span>` : ""}</dd>
-      ${r.keika ? `<dt>経過措置</dt><dd>${esc(r.keika)}まで(この日を過ぎると保険請求できません)</dd>` : ""}
+      ${r.keika ? `<dt>経過措置</dt><dd>${esc(String(r.keika).replace(/まで$/, ""))}まで(この日を過ぎると保険請求できません)</dd>` : ""}
       <dt>YJコード</dt><dd>${esc(r.yj)}</dd>
     </dl>
     <div class="calc">
@@ -267,6 +267,8 @@ fetch("data.json").then(r => { if (!r.ok) throw new Error(r.status); return r.js
     <p>広告なし・無料。購入価などの入力内容はこの端末のブラウザにだけ保存され、送信されません。</p>
     <p>毎朝の出荷状況の変化はXで配信しています:<a href="https://x.com/shukka_watch" target="_blank" rel="noopener">出荷調整ウォッチ(@shukka_watch)</a></p>`;
   $("#q").disabled = false; $("#q").focus();
+  // URLの ?q=検索語 で開いたときは、その語で検索した状態にする(Xの投稿などからのリンク用)
+  try { const q0 = new URLSearchParams(location.search).get("q"); if (q0) $("#q").value = q0.slice(0, 100); } catch (e) {}
   search();
 }).catch(err => { $("#stamp").textContent = "データを読み込めませんでした(" + err.message + ")"; });
 </script>
