@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>薬局の掲示物ひな形(無料お試し版)</title>
+<meta name="description" content="調剤薬局の掲示物・お知らせのひな形。薬局名や日付を入れるだけで、A4の掲示用とLINE・ホームページ用の短文ができます。入力は端末の中だけで使われます。">
+<style>
+:root{
+  --bg:#f3f6f4;--card:#ffffff;--ink:#17221c;--sub:#5a6a61;--line:#dbe3de;
+  --acc:#2f7d5b;--acc-ink:#ffffff;--acc-soft:#e5f2eb;--warn:#8a5a00;--warn-soft:#fff3db;--lock:#8a949a;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111814;--card:#1a231e;--ink:#e5ece8;--sub:#9db0a5;--line:#2b3830;
+  --acc:#5fc08f;--acc-ink:#0d1a13;--acc-soft:#1b3227;--warn:#f0b85a;--warn-soft:#34290f;--lock:#6f7b74;
+}}
+:root[data-theme="dark"]{
+  --bg:#111814;--card:#1a231e;--ink:#e5ece8;--sub:#9db0a5;--line:#2b3830;
+  --acc:#5fc08f;--acc-ink:#0d1a13;--acc-soft:#1b3227;--warn:#f0b85a;--warn-soft:#34290f;--lock:#6f7b74;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Hiragino Sans","Noto Sans JP","Yu Gothic UI",sans-serif;font-size:15px;line-height:1.6}
+a{color:var(--acc)}
+main{max-width:900px;margin:0 auto;padding:12px 16px 60px}
+h1{font-size:20px;margin:8px 0 2px}
+h2{font-size:16px;margin:0 0 8px}
+.muted{color:var(--sub);font-size:13px}
+.badge{display:inline-block;font-size:12px;padding:1px 8px;border-radius:10px;background:var(--acc-soft);color:var(--acc);vertical-align:middle;margin-left:6px;font-weight:600}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:12px 0}
+.cat{font-size:13px;color:var(--sub);margin:12px 0 6px;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.tb{text-align:left;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 11px;cursor:pointer;color:var(--ink);font:inherit}
+.tb b{display:block;font-size:14.5px}
+.tb small{display:block;color:var(--sub);font-size:12px;line-height:1.45;margin-top:2px}
+.tb[aria-pressed="true"]{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc) inset;background:var(--acc-soft)}
+.tb.locked b::after{content:" 🔒";font-size:12px}
+.tb.locked{color:var(--lock)}
+.fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px 12px}
+.f label{display:block;font-size:12.5px;color:var(--sub);margin-bottom:2px}
+.f.wide{grid-column:1/-1}
+input[type=text],input[type=date],input[type=tel],select,textarea{width:100%;font:inherit;font-size:16px;padding:8px 9px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
+textarea{min-height:70px;resize:vertical}
+.ck{display:flex;gap:8px;align-items:center;font-size:14px;padding:3px 0}
+.ck input{width:20px;height:20px;flex:none;accent-color:var(--acc)}
+details summary{cursor:pointer;font-weight:600}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+button.p,button.s{font:inherit;font-size:15px;border-radius:9px;padding:9px 16px;cursor:pointer}
+button.p{background:var(--acc);color:var(--acc-ink);border:1px solid var(--acc);font-weight:700}
+button.s{background:none;color:var(--acc);border:1px solid var(--acc)}
+.warn{background:var(--warn-soft);color:var(--warn);border-radius:8px;padding:8px 10px;font-size:13px;margin:8px 0}
+.memo{background:var(--acc-soft);border-radius:8px;padding:8px 10px;font-size:13px}
+.memo ul,.src ul{margin:4px 0 0;padding-left:20px}
+.src{font-size:12.5px;color:var(--sub)}
+.src a{word-break:break-all}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:20px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+.toast.on{opacity:1}
+.theme{float:right;font-size:13px}
+.theme select{width:auto;font-size:13px;padding:3px 6px}
+footer{color:var(--sub);font-size:12px;border-top:1px solid var(--line);margin-top:24px;padding-top:12px}
+/* 用紙のプレビュー */
+.pv{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:6px;background:#888}
+.paper{position:absolute;left:0;top:0;transform-origin:0 0;width:210mm;height:297mm;background:#fff;color:#111;
+  font-family:"BIZ UDPGothic","BIZ UDゴシック","Hiragino Sans","Noto Sans JP","Meiryo",sans-serif;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact;overflow:hidden}
+.paper:focus{outline:none}
+.pg{position:absolute;inset:16mm 17mm;display:flex;flex-direction:column}
+.pt{font-size:34pt;font-weight:700;line-height:1.3;text-align:center;color:#1f5e43;border-bottom:3px solid #2f7d5b;padding-bottom:4mm;margin-bottom:7mm}
+.pl{font-size:17pt;line-height:1.75;margin-bottom:6mm}
+.pbox{border:3px solid #2f7d5b;border-radius:4mm;padding:6mm 7mm;font-size:23pt;font-weight:700;line-height:1.6;margin:0 0 7mm;text-align:center;background:#f1f8f4}
+.pbox small{display:block;font-size:15pt;font-weight:400}
+.pb{font-size:16.5pt;line-height:1.75}
+.pb p{margin:0 0 4mm}
+.pb ul{margin:0 0 4mm;padding-left:9mm}
+.pb li{margin-bottom:2mm}
+.pb .em{font-weight:700;background:linear-gradient(transparent 60%,#ffe08a 60%)}
+.pb .h{font-weight:700;color:#1f5e43;font-size:17.5pt;margin:5mm 0 2mm}
+.psm{font-size:12.5pt;line-height:1.6;color:#333}
+.pf{margin-top:auto;border-top:1.5px solid #9bbfae;padding-top:4mm;font-size:16pt;line-height:1.6;text-align:right}
+.pf b{font-size:19pt}
+.ptab{width:100%;border-collapse:collapse;font-size:12.5pt;line-height:1.5}
+.ptab th,.ptab td{border:1px solid #9bbfae;padding:2mm 3mm;vertical-align:top;text-align:left}
+.ptab th{background:#f1f8f4;width:34mm;white-space:nowrap;font-weight:700}
+.cards{position:absolute;inset:8mm;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:0}
+.cards>div{border:1px dashed #999;padding:7mm 7mm;display:flex;flex-direction:column}
+.cards .ct{font-size:19pt;font-weight:700;color:#1f5e43;border-bottom:2px solid #2f7d5b;padding-bottom:2mm;margin-bottom:4mm}
+.cards .cb{font-size:13.5pt;line-height:1.7}
+.cards .cb p{margin:0 0 3mm}
+.cards .cf{margin-top:auto;font-size:12pt;text-align:right;color:#333}
+@media print{
+  @page{size:A4 portrait;margin:0}
+  html,body{background:#fff!important}
+  main{padding:0;max-width:none}
+  .noprint{display:none!important}
+  .pv{border:0;border-radius:0;height:auto!important;overflow:visible;background:#fff}
+  .paper{position:relative;transform:none!important}
+}
+</style>
+</head>
+<body>
+<main>
+<div class="noprint">
+  <div class="theme"><label>表示 <select id="theme"><option value="">端末に合わせる</option><option value="light">明るい</option><option value="dark">暗い</option></select></label></div>
+  <h1>薬局の掲示物ひな形<span class="badge" id="edition"></span></h1>
+  <p class="muted">薬局名や日付を入れるだけで、<b>A4の掲示用</b>と<b>LINE・ホームページ用の短文</b>ができます。入れた内容は<b>この端末の中だけ</b>で使われ、外には送られません。曜日は自動で付きます。</p>
+  <p class="muted"><a href="./">← 薬価・出荷状況しらべ(検索)へ</a> ・ <a href="calc.html">調剤料金 概算計算</a></p>
+  <div id="promo"></div>
+
+  <div class="card">
+    <h2>① ひな形を選ぶ</h2>
+    <div id="list"></div>
+  </div>
+
+  <details class="card" id="commonBox">
+    <summary>② 薬局の情報(すべてのひな形で共通・この端末に保存)</summary>
+    <div class="fields" id="common" style="margin-top:8px"></div>
+  </details>
+
+  <div class="card" id="editor" hidden>
+    <h2 id="etitle"></h2>
+    <div class="fields" id="fields"></div>
+    <div id="lockmsg"></div>
+  </div>
+</div>
+
+<div id="out" hidden>
+  <div class="card noprint">
+    <h2>③ 掲示用(A4)</h2>
+    <p class="muted">下の用紙は、クリックすると文字を直接直せます(入力欄を変えると元に戻ります)。印刷の画面で「余白:なし」または「既定」、「倍率:100%」を選んでください。</p>
+    <div id="over"></div>
+    <div class="btns"><button class="p" id="print">🖨 A4で印刷する</button><button class="s" id="reset">用紙の直しを元に戻す</button></div>
+  </div>
+  <div class="pv" id="pv"><div class="paper" id="paper" contenteditable="true" spellcheck="false"></div></div>
+  <div class="noprint">
+    <div class="card">
+      <h2>④ LINE・ホームページ用の短文</h2>
+      <textarea id="short" rows="7"></textarea>
+      <p class="muted">この欄も直接直せます(入力欄を変えると元に戻ります)。</p>
+      <div class="btns"><button class="p" id="copy">📋 短文をコピー</button></div>
+    </div>
+    <div class="card" id="memoBox">
+      <h2>お店の方へのメモ(印刷されません)</h2>
+      <div class="memo" id="memo"></div>
+      <div class="src" id="src" style="margin-top:8px"></div>
+      <div class="warn">制度に関する内容は、掲示の前に出典のページで最新の情報をご確認ください。文面は薬剤師が確認してからお使いください。</div>
+    </div>
+  </div>
+</div>
+
+<footer class="noprint">
+  文面は厚生労働省などの公開情報をもとにしています(各ひな形の「出典」をご覧ください)。制度は変わることがあるため、掲示の前に出典で最新の情報を確かめ、薬剤師が確認してからお使いください。<br>作成:<a href="https://shun600124.github.io/yakka-search/" target="_blank" rel="noopener">薬価・出荷状況しらべ</a> / 𝕏 <a href="https://x.com/shukka_watch" target="_blank" rel="noopener">@shukka_watch</a>
+</footer>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+const EDITION = "free";       // "free" か "full"
+const BUY_URL = "";       // 完全版の販売ページ(未定なら空)
+const T = [];
+// ひな形の中身。build.mjs が engine.html の /*__TEMPLATES__*/ に流し込む。
+// 「//@@ id|分類|題名|説明|free」の行から次の「//@@」までが1つのひな形。
+// free と書いたものだけ無料版に中身が入る(それ以外は無料版では題名だけ)。
+// ここより上(最初の //@@ まで)は、どちらの版にも入る共通部品。
+const SRC = {
+  kinou: ["厚生労働省「薬局機能情報提供制度について(薬局事業者向けページ)」", "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kenkou_iryou/iyakuhin/kinoujouhou/index_00003.html"],
+  gmis: ["厚生労働省「医療機能・薬局機能情報提供制度 随時報告操作マニュアル」(PDF)", "https://www.mhlw.go.jp/content/001355815.pdf"],
+  houkoku: ["厚生労働省「医療機能情報提供制度・薬局機能情報提供制度 報告事項説明資料 薬局版」(PDF)", "https://www.mhlw.go.jp/content/001620556.pdf"],
+  geQA: ["厚生労働省「ジェネリック医薬品への疑問に答えます ～ジェネリック医薬品Q&A～」(PDF)", "https://www.mhlw.go.jp/bunya/iryou/kouhatu-iyaku/dl/02_09.pdf"],
+  ge: ["厚生労働省「ジェネリック医薬品(後発医薬品)の使用促進について」", "https://www.mhlw.go.jp/seisaku/2012/03/01.html"],
+  maina: ["厚生労働省「医療機関・薬局では、マイナ保険証か資格確認書をご提示ください」", "https://www.mhlw.go.jp/stf/web_magazine/closeup/50.html"],
+  mainaQA: ["厚生労働省「マイナンバーカードの健康保険証利用についてよくある質問」", "https://www.mhlw.go.jp/stf/newpage_40406.html"],
+  denshi: ["厚生労働省「電子処方せん(国民向け)」", "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/denshishohousen_kokumin.html"],
+  denshiQA: ["厚生労働省「国民の皆さま向け 電子処方せんQ&A」", "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/denshishohousen_kokumin_QA.html"],
+  otc: ["厚生労働省「OTC類似薬の保険給付の在り方の見直しについて(OTC類似薬の一部保険外療養)」", "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kenkou_iryou/iryouhoken/juuyou/otc.html"],
+  otcPdf: ["厚生労働省「OTC類似薬の一部保険外療養」制度の概要(PDF)", "https://www.mhlw.go.jp/content/001753114.pdf"],
+  choki: ["厚生労働省「後発医薬品のある先発医薬品(長期収載品)の選定療養について」", "https://www.mhlw.go.jp/stf/newpage_39830.html"],
+  techo: ["厚生労働省「お薬手帳について」(PDF)", "https://www.mhlw.go.jp/content/001332913.pdf"],
+  techoMag: ["厚生労働省 広報誌「厚生労働」2023年9月号 特集", "https://www.mhlw.go.jp/stf/houdou_kouhou/kouhou_shuppan/magazine/202309_001.html"],
+  seki: ["厚生労働省「咳エチケット」", "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000187997.html"],
+  ryotan: ["e-Gov法令検索「保険医療機関及び保険医療養担当規則」(第20条 処方箋の使用期間)", "https://laws.e-gov.go.jp/law/332M50000100015"],
+  kyotaku: ["厚生労働省 社会保障審議会介護給付費分科会 資料「居宅療養管理指導」(PDF)", "https://www.mhlw.go.jp/content/12300000/001164128.pdf"],
+  kyujin: ["厚生労働省「2024年4月から、労働者の募集や職業紹介事業者への求人の申込みの際、明示しなければならない労働条件が追加されます。」(PDF)", "https://www.mhlw.go.jp/content/001114110.pdf"],
+  kyujinPage: ["厚生労働省「職業安定法施行規則改正(労働条件明示等)」", "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/koyou_roudou/koyou/haken-shoukai/r0604anteisokukaisei1.html"],
+};
+/** 用紙の下の薬局名・電話 */
+function foot(v, H){
+  return `<div class="pf"><b>${H.esc(v.name)}</b><br>☎ ${H.esc(v.tel)}${v.hours ? `<br><span style="font-size:13.5pt">${H.esc(v.hours)}</span>` : ""}</div>`;
+}
+/** LINE用の結び */
+function sline(v){ return [v.name, v.tel ? "☎" + v.tel : ""].filter(Boolean).join(" "); }
+
+
+T.push({id:"nenmatsu",cat:"お休み・営業時間",title:"年末年始のお休み",desc:"休みの期間・最終営業日・再開日を入れるだけ",
+  fields: [
+    {k:"start", l:"お休みの初日", t:"date", d:()=>nextMD(12,30)},
+    {k:"end",   l:"お休みの最終日", t:"date", d:()=>addDays(nextMD(12,30),4)},
+    {k:"open",  l:"営業を再開する日", t:"date", d:()=>addDays(nextMD(12,30),5)},
+    {k:"last",  l:"お休み前の最後の営業日", t:"date", d:()=>addDays(nextMD(12,30),-1)},
+    {k:"lastH", l:"最後の営業日の営業時間(任意)", t:"text", d:"", ph:"例:9:00〜13:00"},
+    {k:"touban",l:"急ぎのときの案内", t:"textarea", d:"お休みの間に急いでお薬が必要なときは、お住まいの地域の休日・夜間に開いている医療機関や薬局をご利用ください。"},
+  ],
+  sheet: (v,H,ex) => `<div class="pg">
+    <div class="pt">年末年始のお休みのお知らせ</div>
+    <div class="pl">いつもご利用いただき、ありがとうございます。<br>下記の期間は、お休みをいただきます。</div>
+    <div class="pbox">お休み:${H.fd(v.start)} 〜 ${H.fd(v.end)}<small>${H.fd(v.open)}から、通常どおり営業します</small></div>
+    <div class="pb">
+      <p>お休みの間にお薬がなくなりそうな方は、<span class="em">${H.fd(v.last)}まで</span>にお早めにお越しください。${v.lastH ? `<br>(${H.fd(v.last)}は ${H.esc(v.lastH)} の営業です)` : ""}</p>
+      <p>${H.br(v.touban)}</p>${ex}
+    </div>${foot(v,H)}</div>`,
+  short: (v,H) => `【年末年始のお休み】
+${H.fd(v.start)}〜${H.fd(v.end)}はお休みです。${H.fd(v.open)}から通常どおり営業します。
+お薬がなくなりそうな方は、${H.fd(v.last)}${v.lastH ? `(${v.lastH})` : ""}までにお越しください。
+${sline(v)}`,
+  memo: [
+    "年や曜日は、入れた日付から自動で付きます。",
+    "患者さんが医療情報ネット(ナビイ)で調べたときのために、休業の予定はG-MISからも登録できます(「臨時休診(休業・閉店)」の機能。操作は下のマニュアル)。年末年始は、報告項目の「その他の閉店日」にもあたります。",
+  ],
+  src: [SRC.kinou, SRC.gmis],
+});
+
+
+T.push({id:"rinji",cat:"お休み・営業時間",title:"臨時休業",desc:"研修・改装・設備点検などで休むとき",locked:true});
+
+T.push({id:"jikan",cat:"お休み・営業時間",title:"営業時間の変更",desc:"変更日と、変更前・変更後の時間を並べて表示",locked:true});
+
+T.push({id:"maker",cat:"お薬のご説明",title:"メーカーが変わる説明カード",desc:"出荷調整などで別メーカーの同じ薬を渡すとき(A4に4枚)",
+  fields: [
+    {k:"why",  l:"理由", t:"select", o:["お薬の出荷が少なくなっているため","いつものお薬の販売が終わったため","(理由を書かない)"]},
+    {k:"drug", l:"お薬の名前(任意・空なら書かない)", t:"text", d:"", ph:"例:〇〇錠5mg"},
+  ],
+  sheet: (v,H,ex) => {
+    const why = v.why.startsWith("(") ? "" : `${H.esc(v.why)}、`;
+    const one = `<div><div class="ct">お薬のメーカーが<br>変わりました</div><div class="cb">
+      <p>${why}今回は${v.drug ? `「${H.esc(v.drug)}」について、` : ""}<b>有効成分とその量がいつもと同じ</b>、別のメーカーのお薬をお渡ししています。</p>
+      <p>色・形・大きさ・包装・名前が、これまでと変わることがあります。<b>飲み方(量・回数)は、処方どおりで変わりません。</b></p>
+      <p>気になることがあれば、お気軽に薬剤師にご相談ください。</p>${ex}</div>
+      <div class="cf">${H.esc(v.name)} ☎ ${H.esc(v.tel)}</div></div>`;
+    return `<div class="cards">${one}${one}${one}${one}</div>`;
+  },
+  short: (v,H) => `【お薬のメーカーが変わる場合があります】
+${v.why.startsWith("(") ? "" : v.why + "、"}有効成分とその量がいつもと同じ、別のメーカーのお薬をお渡しすることがあります。色や形、包装、名前が変わることがありますが、飲み方(量・回数)は処方どおりで変わりません。
+気になることがあれば、お気軽に薬剤師にご相談ください。
+${sline(v)}`,
+  memo: [
+    "A4に4枚並びます。点線で切って、お薬と一緒にお渡しください。",
+    "「理由」は、そのお薬に実際にあてはまるものを選んでください(出荷状況はメーカーや厚生労働省の発表で確かめてから)。",
+    "同じ成分・同じ規格の品目と出荷状況は「<a href=\"https://shun600124.github.io/yakka-search/\" target=\"_blank\" rel=\"noopener\">薬価・出荷状況しらべ</a>」で探せます。",
+  ],
+  src: [SRC.geQA],
+});
+
+
+T.push({id:"maina",cat:"制度のご案内",title:"マイナ保険証・資格確認書",desc:"受付で「マイナ保険証か資格確認書を」のお願い",
+  fields: [
+    {k:"help", l:"受付の機械の操作をお手伝いする", t:"check", d:true},
+  ],
+  sheet: (v,H,ex) => `<div class="pg">
+    <div class="pt">受付では、保険の確認のため<br>次のどちらかをご提示ください</div>
+    <div class="pbox">マイナ保険証<small>(健康保険証として利用登録したマイナンバーカード)</small>または<br>資格確認書</div>
+    <div class="pb">
+      <div class="h">マイナ保険証の方</div>
+      <p>受付の機械にカードを置き、<span class="em">顔認証</span>または<span class="em">暗証番号</span>で確認します。</p>
+      <p>「お薬の情報」の提供に同意いただくと、ほかの医療機関・薬局で出たお薬も踏まえて、飲み合わせや重なりを確かめやすくなります。</p>
+      ${v.help ? `<p>機械の使い方がわからないときや、顔の確認・暗証番号がうまくいかないときは、お気軽にスタッフへお声がけください。</p>` : ""}${ex}
+    </div>${foot(v,H)}</div>`,
+  short: (v,H) => `【保険の確認についてのお願い】
+受付では「マイナ保険証」または「資格確認書」をご提示ください。
+マイナ保険証は、受付の機械にカードを置き、顔認証か暗証番号で確認します。お薬の情報の提供に同意いただくと、飲み合わせなどを確かめやすくなります。${v.help ? "\n使い方がわからないときや、うまく確認できないときは、スタッフにお声がけください。" : ""}
+${sline(v)}`,
+  memo: ["保険証の扱いは時期によって変わってきました。掲示の前に、下の厚生労働省のページで最新の案内をご確認ください。"],
+  src: [SRC.maina, SRC.mainaQA],
+});
+
+
+T.push({id:"denshi",cat:"制度のご案内",title:"電子処方箋の案内",desc:"電子処方箋の受付のしかた(マイナ保険証/引換番号)",locked:true});
+
+T.push({id:"otc",cat:"制度のご案内",title:"OTC類似薬の別途負担(2027年3月〜)",desc:"市販薬と成分が同じ一部の薬に、薬剤費の4分の1の別途負担",locked:true});
+
+T.push({id:"choki",cat:"制度のご案内",title:"先発医薬品の選定療養",desc:"後発品があるのに先発品を希望したときの「特別の料金」(価格差の2分の1)",locked:true});
+
+T.push({id:"techo",cat:"お薬のご説明",title:"お薬手帳のおすすめ",desc:"お薬手帳を持ってきていただくお願い",locked:true});
+
+T.push({id:"generic",cat:"お薬のご説明",title:"ジェネリック医薬品のご案内",desc:"後発医薬品の説明(特定の製品はすすめない書き方)",locked:true});
+
+T.push({id:"kigen",cat:"お薬のご説明",title:"処方箋の有効期限",desc:"「交付日を含めて4日以内」を、日付の例つきで",locked:true});
+
+T.push({id:"kansen",cat:"店内・その他",title:"感染対策のお願い",desc:"咳エチケット・発熱時の申し出・車での待機など",locked:true});
+
+T.push({id:"zaitaku",cat:"店内・その他",title:"在宅訪問(お薬のお届け)",desc:"通院が難しい方のご自宅・施設へ薬剤師が伺う案内",locked:true});
+
+T.push({id:"kyujin",cat:"店内・その他",title:"スタッフ募集(求人)",desc:"募集のときに明示が必要な労働条件の欄つき",locked:true});
+
+
+/* ---------- 道具 ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const br = s => esc(s).replace(/\n/g, "<br>");
+const WD = "日月火水木金土";
+function pd(iso){ if(!iso) return null; const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso); return m? new Date(+m[1],+m[2]-1,+m[3]) : null; }
+function iso(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+/** 12月30日(水) */
+function fd(s){ const d=pd(s); return d? `${d.getMonth()+1}月${d.getDate()}日(${WD[d.getDay()]})` : "〇月〇日(〇)"; }
+/** 2026年12月30日(水) */
+function fdy(s){ const d=pd(s); return d? `${d.getFullYear()}年${fd(s)}` : "〇年〇月〇日(〇)"; }
+function addDays(s,n){ const d=pd(s); if(!d) return ""; d.setDate(d.getDate()+n); return iso(d); }
+const today = new Date();
+/** 今日から見て次の「月/日」(過ぎていれば翌年) */
+function nextMD(m,d){ let y=today.getFullYear(); const t=new Date(y,m-1,d); if(t < new Date(today.getFullYear(),today.getMonth(),today.getDate())) y++; return iso(new Date(y,m-1,d)); }
+const H = {esc, br, fd, fdy, addDays, iso};
+
+function load(k, def){ try{ const v=localStorage.getItem(k); return v? JSON.parse(v) : def; }catch(e){ return def; } }
+function save(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+
+/* ---------- 表示テーマ ---------- */
+const themeSel = $("#theme");
+themeSel.value = load("keiji:theme", "");
+function applyTheme(){ if(themeSel.value) document.documentElement.dataset.theme = themeSel.value; else delete document.documentElement.dataset.theme; }
+themeSel.onchange = () => { save("keiji:theme", themeSel.value); applyTheme(); };
+applyTheme();
+
+/* ---------- 共通の入力欄 ---------- */
+const COMMON = [
+  {k:"name", l:"薬局名", t:"text", d:"みどりの木薬局", ph:"例:みどりの木薬局"},
+  {k:"tel",  l:"電話番号", t:"tel", d:"03-0000-0000"},
+  {k:"hours",l:"ふだんの営業時間(短く)", t:"text", d:"月〜金 9:00〜18:00/土 9:00〜13:00", ph:"例:月〜金 9:00〜18:00"},
+  {k:"sign", l:"LINE・HP用の結び(任意)", t:"text", d:"", ph:"例:ご不明な点はお気軽にどうぞ。"},
+];
+let common = Object.assign(Object.fromEntries(COMMON.map(f=>[f.k,f.d])), load("keiji:common", {}));
+
+function fieldEl(f, val, onchange){
+  const w = document.createElement("div");
+  w.className = "f" + (f.t==="textarea"||f.wide ? " wide" : "");
+  const id = "f_" + f.k + "_" + Math.random().toString(36).slice(2,7);
+  if(f.t==="check"){
+    w.innerHTML = `<label class="ck"><input type="checkbox" id="${id}"> ${esc(f.l)}</label>`;
+    const i = w.querySelector("input"); i.checked = !!val;
+    i.onchange = () => onchange(i.checked);
+    return w;
+  }
+  let inner;
+  if(f.t==="select") inner = `<select id="${id}">${f.o.map(o=>`<option>${esc(o)}</option>`).join("")}</select>`;
+  else if(f.t==="textarea") inner = `<textarea id="${id}" placeholder="${esc(f.ph||"")}"></textarea>`;
+  else inner = `<input type="${f.t||"text"}" id="${id}" placeholder="${esc(f.ph||"")}">`;
+  w.innerHTML = `<label for="${id}">${esc(f.l)}</label>${inner}`;
+  const i = w.querySelector("input,select,textarea");
+  i.value = val ?? "";
+  i.oninput = i.onchange = () => onchange(i.value);
+  return w;
+}
+const commonBox = $("#common");
+COMMON.forEach(f => commonBox.appendChild(fieldEl(f, common[f.k], v => { common[f.k]=v; save("keiji:common", common); render(); })));
+if(!load("keiji:common", null)) $("#commonBox").open = true;
+
+/* ---------- 一覧 ---------- */
+const CATS = ["お休み・営業時間","お薬のご説明","制度のご案内","店内・その他"];
+function drawList(){
+  $("#list").innerHTML = CATS.map(c => {
+    const items = T.filter(t=>t.cat===c);
+    if(!items.length) return "";
+    return `<div class="cat">${esc(c)}</div><div class="grid">` + items.map(t =>
+      `<button class="tb${t.locked?" locked":""}" data-id="${t.id}" aria-pressed="false"><b>${esc(t.title)}</b><small>${esc(t.desc)}</small></button>`
+    ).join("") + "</div>";
+  }).join("");
+  $("#list").querySelectorAll(".tb").forEach(b => b.onclick = () => select(b.dataset.id, true));
+}
+
+/* ---------- 選択と描画 ---------- */
+let cur = null, vals = {};
+function defaults(t){ const o={}; (t.fields||[]).forEach(f => o[f.k] = typeof f.d==="function" ? f.d() : (f.d ?? (f.t==="select"? f.o[0] : ""))); return o; }
+function select(id, scroll){
+  cur = T.find(t=>t.id===id) || T.find(t=>!t.locked);
+  document.querySelectorAll(".tb").forEach(b => b.setAttribute("aria-pressed", b.dataset.id===cur.id));
+  try{ location.hash = cur.id; }catch(e){}
+  $("#editor").hidden = false;
+  $("#etitle").textContent = "ひな形:" + cur.title;
+  const fbox = $("#fields"); fbox.innerHTML = "";
+  if(cur.locked){
+    $("#lockmsg").innerHTML = `<div class="warn">このひな形は<b>完全版</b>で使えます。${BUY_URL? `<a href="${esc(BUY_URL)}" target="_blank" rel="noopener">完全版のご案内を見る</a>` : "完全版の販売ページは準備中です。"}</div>`;
+    $("#out").hidden = true;
+    return;
+  }
+  $("#lockmsg").innerHTML = "";
+  vals = Object.assign(defaults(cur), load("keiji:v:"+cur.id, {}));
+  const all = (cur.fields||[]).concat([{k:"extra", l:"付け足す一文(任意・用紙の最後に入ります)", t:"textarea", ph:"例:駐車場は2台分ございます。"}]);
+  all.forEach(f => fbox.appendChild(fieldEl(f, vals[f.k], v => { vals[f.k]=v; save("keiji:v:"+cur.id, vals); render(); })));
+  $("#out").hidden = false;
+  render();
+  if(scroll) $("#editor").scrollIntoView({behavior:"smooth", block:"start"});
+}
+function render(){
+  if(!cur || cur.locked) return;
+  const v = Object.assign({}, common, vals);
+  const ex = v.extra ? `<p>${br(v.extra)}</p>` : "";
+  $("#paper").innerHTML = cur.sheet(v, H, ex);
+  let s = cur.short(v, H).trim();
+  if(v.extra) s += "\n" + v.extra.trim();
+  if(v.sign) s += "\n" + v.sign.trim();
+  $("#short").value = s;
+  $("#memo").innerHTML = cur.memo ? "<ul>" + cur.memo.map(m=>`<li>${m}</li>`).join("") + "</ul>" : "";
+  $("#src").innerHTML = "<b>出典(公式の情報)</b><ul>" + (cur.src||[]).map(x=>`<li>${esc(x[0])}<br><a href="${esc(x[1])}" target="_blank" rel="noopener">${esc(x[1])}</a></li>`).join("") + "</ul>";
+  fit();
+}
+function fit(){
+  const pv = $("#pv"), p = $("#paper");
+  const s = pv.clientWidth / p.offsetWidth;
+  p.style.transform = `scale(${s})`;
+  pv.style.height = (p.offsetHeight * s) + "px";
+  const boxes = [...p.querySelectorAll(".pg,.cards,.cards>div")];
+  const over = boxes.some(g => g.scrollHeight > g.clientHeight + 2 || g.scrollWidth > g.clientWidth + 2);
+  $("#over").innerHTML = over ? `<div class="warn">文字が多くて、A4の1枚に入りきっていません。文を短くしてください。</div>` : "";
+}
+addEventListener("resize", fit);
+$("#paper").addEventListener("input", fit);
+$("#reset").onclick = render;
+$("#print").onclick = () => { $("#paper").blur(); window.print(); };
+addEventListener("beforeprint", () => { $("#paper").style.transform = "none"; });
+addEventListener("afterprint", fit);
+
+/* ---------- コピー ---------- */
+function toast(m){ const t=$("#toast"); t.textContent=m; t.classList.add("on"); setTimeout(()=>t.classList.remove("on"),1600); }
+$("#copy").onclick = async () => {
+  const txt = $("#short").value;
+  try{ await navigator.clipboard.writeText(txt); toast("コピーしました"); }
+  catch(e){
+    const a=$("#short"); a.select(); let ok=false;
+    try{ ok = document.execCommand("copy"); }catch(e2){}
+    toast(ok ? "コピーしました" : "コピーできませんでした。文を選んでコピーしてください");
+  }
+};
+
+/* ---------- はじめ ---------- */
+$("#edition").textContent = EDITION==="full" ? "完全版" : "無料お試し版";
+if(EDITION!=="full"){
+  const n = T.filter(t=>!t.locked).length, all = T.length;
+  $("#promo").innerHTML = `<div class="card" style="border-color:var(--acc)"><b>無料お試し版</b>:${all}種類のうち${n}種類が使えます。🔒の付いたひな形(制度のご案内・求人など)は<b>完全版</b>で使えます。完全版は1つのファイルで、パソコンに保存して開くだけで使えます(インターネットにつながっていなくても使えます)。` +
+    (BUY_URL ? ` <a href="${esc(BUY_URL)}" target="_blank" rel="noopener">完全版のご案内</a>` : " 販売ページは準備中です。") + `</div>`;
+}
+drawList();
+let h = ""; try{ h = decodeURIComponent(location.hash.slice(1)); }catch(e){}
+select(T.some(t=>t.id===h && !t.locked) ? h : (T.find(t=>!t.locked)||T[0]).id, false);
+</script>
+</body>
+</html>
