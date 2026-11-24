@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>薬局向け無料ツールとDXサポート</title>
+<meta name="description" content="薬剤師が作った、調剤薬局向けの無料ツールの一覧(薬価・出荷状況の検索、調剤料金の概算、施設基準のチェック、掲示物ひな形)と、個人薬局向けのDX・AIサポートのご案内。">
+<style>
+:root{
+  --bg:#f3f6f4;--card:#ffffff;--ink:#17221c;--sub:#5a6a61;--line:#dbe3de;
+  --acc:#2f7d5b;--acc-ink:#ffffff;--acc-soft:#e5f2eb;--warn:#8a5a00;--warn-soft:#fff3db;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111814;--card:#1a231e;--ink:#e5ece8;--sub:#9db0a5;--line:#2b3830;
+  --acc:#5fc08f;--acc-ink:#0d1a13;--acc-soft:#1b3227;--warn:#f0b85a;--warn-soft:#34290f;
+}}
+:root[data-theme="dark"]{
+  --bg:#111814;--card:#1a231e;--ink:#e5ece8;--sub:#9db0a5;--line:#2b3830;
+  --acc:#5fc08f;--acc-ink:#0d1a13;--acc-soft:#1b3227;--warn:#f0b85a;--warn-soft:#34290f;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Hiragino Sans","Noto Sans JP","Yu Gothic UI",sans-serif;font-size:15px;line-height:1.7}
+a{color:var(--acc)}
+main{max-width:900px;margin:0 auto;padding:12px 16px 60px}
+header{padding:18px 0 6px}
+.kicker{display:inline-block;font-size:12.5px;font-weight:700;color:var(--acc);background:var(--acc-soft);padding:2px 10px;border-radius:12px}
+h1{font-size:clamp(19px,5.4vw,26px);line-height:1.4;margin:10px 0 6px}
+h2{font-size:18px;margin:28px 0 10px}
+.lead{color:var(--sub);margin:0}
+.muted{color:var(--sub);font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.card{display:block;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;color:var(--ink);text-decoration:none}
+a.card:hover{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc) inset}
+.card .ico{font-size:24px;line-height:1}
+.card b{display:block;font-size:16px;margin:6px 0 2px}
+.card span{display:block;color:var(--sub);font-size:13.5px;line-height:1.6}
+.card .go{display:inline-block;margin-top:8px;font-size:13px;font-weight:700;color:var(--acc)}
+.soon{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
+.soon li{background:var(--card);border:1px dashed var(--line);border-radius:10px;padding:6px 10px;font-size:13.5px;color:var(--sub)}
+.box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.box ul{margin:6px 0;padding-left:20px}
+.box li{margin:4px 0}
+.steps{counter-reset:s;list-style:none;margin:8px 0 0;padding:0}
+.steps li{counter-increment:s;position:relative;padding-left:34px;margin:8px 0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:1px;width:24px;height:24px;border-radius:50%;background:var(--acc);color:var(--acc-ink);font-size:13px;font-weight:700;display:grid;place-items:center}
+.btn{display:inline-block;background:var(--acc);color:var(--acc-ink);text-decoration:none;font-weight:700;padding:11px 20px;border-radius:999px;font-size:15.5px}
+.btn:hover{filter:brightness(1.08)}
+.sns{display:flex;flex-wrap:wrap;gap:10px}
+.sns .card{flex:1 1 240px}
+footer{margin-top:36px;border-top:1px solid var(--line);padding-top:12px}
+</style>
+</head>
+<body>
+<main>
+<p class="muted"><a href="./">← 薬価・出荷状況しらべ(検索)へ</a></p>
+
+<header>
+<span class="kicker">薬剤師×AI 薬局DXサポート</span>
+<h1><span style="display:inline-block">薬局の「ちょっと面倒」を、</span><span style="display:inline-block">無料ツールで軽くする。</span></h1>
+<p class="lead">調剤薬局で働く薬剤師が、AIを使って作った薬局向けのツールです。どれも無料・登録不要で、スマホでもパソコンでも使えます。入力した内容は、使っている端末の中だけで扱います。</p>
+</header>
+
+<h2>無料ツール</h2>
+<div class="grid">
+<a class="card" href="./">
+  <div class="ico">🔍</div>
+  <b>薬価・出荷状況しらべ</b>
+  <span>品名・成分・メーカーで検索。薬価と出荷状況(限定出荷・供給停止)、販売中止、経過措置の期限を一緒に表示。同じ成分・規格の品目も並べます。毎日自動で更新。</span>
+  <span class="go">開く →</span>
+</a>
+<a class="card" href="calc.html">
+  <div class="ico">🧮</div>
+  <b>調剤料金の概算計算</b>
+  <span>薬・数・日数を入れると、調剤基本料や加算を含めた概算と、1〜3割の自己負担が出ます。自局の届出に合わせて設定できます(2026年度の点数)。</span>
+  <span class="go">開く →</span>
+</a>
+<a class="card" href="kijun.html">
+  <div class="ico">✅</div>
+  <b>施設基準・加算の要件チェック表</b>
+  <span>令和8年度の調剤基本料の区分と、地域支援・在宅などの加算16項目。数字とチェックを入れると「あと何が足りないか」が分かります。要件ごとに厚労省の原文つき。</span>
+  <span class="go">開く →</span>
+</a>
+<a class="card" href="keiji.html">
+  <div class="ico">📄</div>
+  <b>掲示物ひな形(無料お試し版)</b>
+  <span>薬局名と日付を入れるだけで、A4の掲示とLINE・ホームページ用の短文ができます。お試し版は年末年始のお休み・メーカー変更の説明カード・マイナ保険証の3種類。</span>
+  <span class="go">開く →</span>
+</a>
+</div>
+<p class="muted">どのツールも目安としてお使いください。制度や点数は、厚生労働省などの原文と、地方厚生局の案内でご確認ください。</p>
+
+<h2>準備中</h2>
+<ul class="soon">
+<li>調剤の疑義解釈 検索</li>
+<li>公的情報の新着まとめ</li>
+<li>数字で見る薬局業界</li>
+</ul>
+
+<h2>個人薬局向け DX・AIサポート</h2>
+<div class="box">
+<p style="margin:0">パソコン作業が苦手な個人経営の薬局向けに、次のようなお手伝いをしています。上のツールも、このサポートの見本です。</p>
+<ul>
+<li><b>ホームページ</b>:営業時間・お知らせ・処方箋の送り方などが載った、スマホで見やすいページ</li>
+<li><b>Excel作業の効率化</b>:仕入れ明細の集計、薬価差の計算など、毎月の手作業を自動に</li>
+<li><b>AIの使い方</b>:お知らせ文や掲示物をAIで作る方法を、一緒に試しながらお伝えします</li>
+</ul>
+<p style="margin:10px 0 0"><b>進め方</b></p>
+<ol class="steps">
+<li>無料でご相談(困っていることを聞かせてください)</li>
+<li>作るものが決まったら、お見積もり</li>
+<li>作業して、お渡し</li>
+<li>お渡しのときにお支払い</li>
+</ol>
+<p style="margin:14px 0 0"><a class="btn" href="https://docs.google.com/forms/d/e/1FAIpQLSeLib_up0c-BAFLOVwu9CadqSqCeMNCaJT8Q7hfmV40G1yZ9w/viewform" target="_blank" rel="noopener">無料で相談する</a></p>
+<p class="muted" style="margin:6px 0 0">Googleフォームが開きます。内容を確認して、2〜3日以内にメールでご連絡します。患者さんの情報は書かないでください。</p>
+</div>
+
+<h2>発信しています</h2>
+<div class="sns">
+<a class="card" href="https://x.com/shukka_watch" target="_blank" rel="noopener">
+  <div class="ico">𝕏</div>
+  <b>出荷調整ウォッチ</b>
+  <span>厚労省の公開データから、限定出荷・供給停止・出荷再開・販売中止の変化を毎朝お届けしています。</span>
+</a>
+<a class="card" href="https://www.tiktok.com/@shun.0124" target="_blank" rel="noopener">
+  <div class="ico">🎵</div>
+  <b>TikTok</b>
+  <span>薬局のDX・AI活用や、無料ツールの使い方、薬局あるあるを投稿しています。</span>
+</a>
+</div>
+
+<footer class="muted">
+<p>作成: 薬剤師×AI 薬局DXサポート / <a href="./">薬価・出荷状況しらべ</a> / <a href="https://x.com/shukka_watch" target="_blank" rel="noopener">𝕏 @shukka_watch</a></p>
+</footer>
+</main>
+</body>
+</html>
